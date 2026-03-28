@@ -88,8 +88,10 @@ export async function GET(request: Request) {
 
   const admin = createAdminClient();
 
+  const bucket = searchParams.get("bucket") || "kops";
+
   const { data, error } = await admin.storage
-    .from("kops")
+    .from(bucket)
     .createSignedUrl(path, 3600); // 1 hour expiry
 
   if (error) {
