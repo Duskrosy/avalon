@@ -10,9 +10,6 @@ async function getBirthdayBanner(
   currentUserId: string
 ) {
   const today = new Date();
-  const in7Days = new Date(today);
-  in7Days.setDate(today.getDate() + 7);
-
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, first_name, birthday")
@@ -78,6 +75,18 @@ export default async function DashboardLayout({
 
   const navigation = buildNavigation(resolvedViews);
   const userName = `${user.first_name} ${user.last_name}`;
+  const userIsOps = user.role.tier === 1;
+
+  // Get all departments for OPS sidebar sub-items
+  let departments: { name: string; slug: string }[] = [];
+  if (userIsOps) {
+    const { data: depts } = await supabase
+      .from("departments")
+      .select("name, slug")
+      .neq("slug", "ops")
+      .order("name");
+    departments = depts ?? [];
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,6 +94,8 @@ export default async function DashboardLayout({
         navigation={navigation}
         userName={userName}
         departmentName={user.department.name}
+        isOps={userIsOps}
+        departments={departments}
       />
       <div className="ml-64">
         <Topbar unreadCount={unreadCount} birthdayBanner={birthdayBanner} />

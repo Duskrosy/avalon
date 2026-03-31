@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, isOps } from "@/lib/permissions/get-user";
 import { redirect } from "next/navigation";
+import { SalesDashboard } from "@/components/dashboard/sales-dashboard";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -9,30 +10,65 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const greeting = getGreeting();
+  const userIsOps = isOps(user);
+  const deptSlug = user.department.slug;
 
   return (
     <div>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">
           {greeting}, {user.first_name}
         </h1>
         <p className="text-gray-500 mt-1">
-          {isOps(user)
+          {userIsOps
             ? "Here's an overview of all departments."
             : `Here's your ${user.department.name} dashboard.`}
         </p>
       </div>
 
+      {/* Department-specific dashboards */}
+      {deptSlug === "sales" ? (
+        <SalesDashboard />
+      ) : userIsOps ? (
+        <OpsDashboard />
+      ) : (
+        <GenericDashboard />
+      )}
+    </div>
+  );
+}
+
+function OpsDashboard() {
+  return (
+    <div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard label="Pending leaves" value="—" />
         <StatCard label="Active tasks" value="—" />
         <StatCard label="Open goals" value="—" />
         <StatCard label="Unread notifications" value="—" />
       </div>
-
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <p className="text-sm text-gray-500">
-          Dashboard widgets will populate here as views are enabled and data flows in.
+          OPS overview widgets will be enhanced as department dashboards are built. 
+          Visit individual department pages via the sidebar for detailed metrics.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function GenericDashboard() {
+  return (
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Pending leaves" value="—" />
+        <StatCard label="Active tasks" value="—" />
+        <StatCard label="Open goals" value="—" />
+        <StatCard label="Unread notifications" value="—" />
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <p className="text-sm text-gray-500">
+          Dashboard widgets will populate as views are enabled and data flows in.
         </p>
       </div>
     </div>
